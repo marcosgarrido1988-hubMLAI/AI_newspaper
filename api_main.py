@@ -22,7 +22,7 @@ try:
     
     print("Importing FastAPI and core modules (Lightweight)...", flush=True)
     from fastapi import FastAPI, HTTPException, BackgroundTasks
-    from fastapi.responses import FileResponse
+    from fastapi.responses import FileResponse, HTMLResponse
     from fastapi.staticfiles import StaticFiles
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel
@@ -103,12 +103,16 @@ try:
             _service_instance = NewspaperService()
         return _service_instance
 
-    @app.get("/")
+    @app.get("/", methods=["GET", "HEAD"])
     async def root():
-        print("GET / triggered", flush=True)
-        if os.path.exists("index.html"):
-            return FileResponse("index.html")
-        return {"message": "Server running, index.html missing"}
+        print("Root endpoint hit (GET/HEAD).", flush=True)
+        index_path = os.path.join(root_path, "index.html")
+        
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        
+        print(f"ERROR: index.html not found at {index_path}", flush=True)
+        return HTMLResponse("<h1>AI Newspaper</h1><p>Server is running but index.html was not found.</p>")
 
     @app.post("/run-pipeline", response_model=PipelineResponse)
     async def run_pipeline(request: ResearchRequest):
