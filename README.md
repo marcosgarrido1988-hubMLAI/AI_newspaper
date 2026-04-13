@@ -1,3 +1,12 @@
+---
+title: AI Newspaper
+emoji: 🗞️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+---
+
 # Periódico Digital AI (Versión Groq)
 
 Este proyecto utiliza **Groq** para la inferencia ultrarrápida de LLMs y **HuggingFace** para embeddings locales. Automatiza el ciclo de vida de las noticias con un sistema multi-agente.

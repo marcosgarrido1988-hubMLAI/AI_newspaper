@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Newspaper - Digital News Platform</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Neural Newsroom | AI Journalism Platform</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="neural-theme">
     <div class="background-blobs">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -20,117 +22,159 @@
 
     <nav class="glass-nav">
         <div class="logo">
-            <i class="fas fa-newspaper"></i>
-            <span>AI Newspaper</span>
+            <div class="logo-icon"><i class="fas fa-brain"></i></div>
+            <span>Neural<span class="light-text">Newsroom</span></span>
         </div>
-        <div class="nav-links">
-            <a href="#dashboard" class="active">Dashboard</a>
-            <a href="#editor">Editor</a>
-            <a href="#interaction">Interacción</a>
+        <div class="nav-status">
+            <span class="pulse-icon"></span>
+            <span id="systemStatus">SISTEMA ONLINE</span>
         </div>
     </nav>
 
     <main class="container">
-        <header class="hero-section">
-            <h1>Plataforma de Periodismo <span class="gradient-text">Inteligente</span></h1>
-            <p>Generación, verificación y traducción de noticias en segundos con la potencia de Groq Llama 3.</p>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="animate-title">La Noticia del <span class="gradient-text">Futuro</span></h1>
+            <p class="hero-subtitle">Genera reportajes completos, verificados y multilingües en segundos con nuestra red multi-agente.</p>
             
             <div class="input-card glass">
-                <input type="text" id="topicInput" placeholder="¿Sobre qué quieres investigar hoy? (ej. Inteligencia Artificial en España)">
+                <input type="text" id="topicInput" placeholder="Introduce un tema (ej: El futuro de la IA en 2026)...">
                 <button id="runPipelineBtn">
-                    <span class="btn-text">Generar Noticia</span>
-                    <i class="fas fa-magic"></i>
+                    <span>GENERAR</span>
+                    <i class="fas fa-bolt"></i>
                 </button>
-            </div>
-        </header>
-
-        <section id="pipeline-status" class="hidden">
-            <div class="status-grid">
-                <div class="status-item blur-card" id="step-research">
-                    <i class="fas fa-search"></i>
-                    <span>Investigación</span>
-                    <div class="loader"></div>
-                </div>
-                <div class="status-item blur-card" id="step-generation">
-                    <i class="fas fa-pen-nib"></i>
-                    <span>Redacción</span>
-                    <div class="loader"></div>
-                </div>
-                <div class="status-item blur-card" id="step-factcheck">
-                    <i class="fas fa-shield-check"></i>
-                    <span>Verificación</span>
-                    <div class="loader"></div>
-                </div>
             </div>
         </section>
 
-        <section id="results" class="results-layout hidden">
-            <div class="main-content">
-                <article class="article-card glass">
-                    <div class="card-header">
-                        <h2><i class="fas fa-file-alt"></i> Artículo Generado</h2>
+        <!-- Live Pipeline Monitor -->
+        <div id="pipeline-status" class="pipeline-monitor hidden">
+            <div class="monitor-header">
+                <h3><i class="fas fa-microchip"></i> PROCESAMIENTO RED NEURAL</h3>
+                <div class="active-task-indicator">TAREA ACTIVA: <span id="currentTaskName">WAKING UP AI...</span></div>
+            </div>
+            <div class="status-grid">
+                <div class="status-item blur-card" id="step-research">
+                    <div class="status-icon"><i class="fas fa-search"></i></div>
+                    <div class="status-info">
+                        <h4>Investigación</h4>
+                        <span class="status-label">Pendiente</span>
                     </div>
-                    <div id="articleBody" class="article-body">
-                        <!-- Artículo aparecerá aquí -->
+                    <div class="loader"></div>
+                </div>
+                <div class="status-item blur-card" id="step-generation">
+                    <div class="status-icon"><i class="fas fa-pen-nib"></i></div>
+                    <div class="status-info">
+                        <h4>Redacción</h4>
+                        <span class="status-label">Pendiente</span>
                     </div>
-                </article>
+                    <div class="loader"></div>
+                </div>
+                <div class="status-item blur-card" id="step-factcheck">
+                    <div class="status-icon"><i class="fas fa-shield-halved"></i></div>
+                    <div class="status-info">
+                        <h4>Verificación</h4>
+                        <span class="status-label">Pendiente</span>
+                    </div>
+                    <div class="loader"></div>
+                </div>
+            </div>
+            
+            <!-- Agent Logs Console -->
+            <div class="agent-console">
+                <div class="console-header">
+                    <span><i class="fas fa-terminal"></i> AGENT_LOGS</span>
+                    <span class="blink">_</span>
+                </div>
+                <div id="consoleText" class="console-body">
+                    > Esperando orden de redacción...
+                </div>
+            </div>
+        </div>
 
+        <!-- Results Section -->
+        <section id="results" class="results-layout hidden">
+            <!-- Left Side: Article Content -->
+            <div class="main-content">
+                <div class="article-card glass">
+                    <div class="card-header">
+                        <span class="badge">REPORTAJE GENERADO</span>
+                        <div class="action-btns">
+                            <button class="icon-btn" onclick="copyContent('articleBody')" title="Copiar"><i class="far fa-copy"></i></button>
+                            <button class="icon-btn" onclick="shareContent()" title="Compartir"><i class="fas fa-share-nodes"></i></button>
+                        </div>
+                    </div>
+                    <div id="articleBody" class="article-content">
+                        <!-- Generado por AI -->
+                    </div>
+                </div>
+
+                <!-- Multilingual Section -->
                 <div class="multilingual-section">
+                    <h3><i class="fas fa-language"></i> TRADUCCIONES AUTOMÁTICAS</h3>
                     <div class="glass-tabs">
-                        <button class="tab-btn active" data-lang="pinyin">Chino (Pinyin)</button>
-                        <button class="tab-btn" data-lang="german">Alemán</button>
-                        <button class="tab-btn" data-lang="dutch">Holandés</button>
-                        <button class="tab-btn" data-lang="portuguese">Portugués</button>
-                        <button class="tab-btn" data-lang="english">Inglés</button>
+                        <button class="tab-btn active" data-lang="pinyin">CHINO (PINYIN)</button>
+                        <button class="tab-btn" data-lang="german">ALEMÁN</button>
+                        <button class="tab-btn" data-lang="dutch">HOLANDÉS</button>
+                        <button class="tab-btn" data-lang="portuguese">PORTUGUÉS</button>
+                        <button class="tab-btn" data-lang="english">INGLÉS</button>
                     </div>
                     <div class="translation-card glass">
-                        <div id="translationContent">
-                            Selecciona un idioma para ver la adaptación...
+                        <div id="translationContent" class="translation-body">
+                            <!-- Traducción dinámica -->
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Right Side: Sidebar Info -->
             <aside class="sidebar">
-                <div class="info-card glass verification-card">
-                    <h3><i class="fas fa-check-circle"></i> Verificación</h3>
-                    <div id="verificationContent">Esperando resultados...</div>
+                <div class="info-card glass" id="verification-card">
+                    <h3><i class="fas fa-check-double"></i> VERIFICACIÓN</h3>
+                    <div id="verificationContent" class="verification-body small-text">
+                        <!-- Fact-checking info -->
+                    </div>
                 </div>
 
-                <div class="info-card glass social-card">
-                    <h3><i class="fas fa-share-nodes"></i> Redes Sociales</h3>
-                    <div class="social-tabs">
-                        <div class="social-item">
-                            <i class="fab fa-twitter"></i>
-                            <p id="tweetContent">Cargando...</p>
-                        </div>
-                        <div class="social-item">
-                            <i class="fab fa-instagram"></i>
-                            <p id="instaContent">Cargando...</p>
-                        </div>
+                <div class="info-card glass">
+                    <h3><i class="fas fa-share-nodes"></i> SOCIAL FEED</h3>
+                    <div class="social-item">
+                        <div class="social-label"><i class="fab fa-twitter"></i> X (Twitter)</div>
+                        <div id="tweetContent" class="social-text"></div>
+                        <button class="copy-small" onclick="copyContent('tweetContent')"><i class="far fa-copy"></i></button>
+                    </div>
+                    <div class="social-item">
+                        <div class="social-label"><i class="fab fa-instagram"></i> Instagram</div>
+                        <div id="instaContent" class="social-text"></div>
+                        <button class="copy-small" onclick="copyContent('instaContent')"><i class="far fa-copy"></i></button>
                     </div>
                 </div>
             </aside>
         </section>
 
-        <section id="interaction" class="chat-section">
-            <div class="chat-card glass">
-                <div class="card-header">
-                    <h3><i class="fas fa-comments"></i> Chat con el Lector</h3>
+        <!-- Floating Chat Assistant -->
+        <div id="chatWidget" class="chat-widget">
+            <button id="toggleChat" class="chat-toggle glass">
+                <i class="fas fa-comments"></i>
+                <span class="chat-notification">1</span>
+            </button>
+            <div id="chatPanel" class="chat-panel glass hidden">
+                <div class="chat-header">
+                    <h4>Asistente Editorial</h4>
+                    <button id="closeChat"><i class="fas fa-times"></i></button>
                 </div>
                 <div id="chatMessages" class="chat-messages">
-                    <div class="message bot">¡Hola! Soy tu asistente de noticias. ¿En qué puedo ayudarte?</div>
+                    <div class="message bot">Hola! Soy tu asistente editorial. ¿Tienes alguna duda sobre la noticia generada?</div>
                 </div>
-                <div class="chat-input":>
-                    <input type="text" id="chatInput" placeholder="Escribe tu pregunta aquí...">
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Pregunta algo...">
                     <button id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
-        </section>
+        </div>
     </main>
 
     <footer class="glass-footer">
-        <p>&copy; 2026 AI Newspaper - Powered by Groq & Multi-Agent Architecture</p>
+        <p>© 2026 Neural Newsroom | Potenciado por Groq & Agentes Multi-IA</p>
     </footer>
 
     <script src="/static/script.js"></script>
