@@ -4,14 +4,14 @@ import traceback
 
 # --- EXTREME DEBUGGING START ---
 print("\n" + "="*50, flush=True)
-print("APP INITIALIZATION STARTED", flush=True)
+print("APP INITIALIZATION STARTED (Dynamic Imports)", flush=True)
 print(f"Python version: {sys.version}", flush=True)
 print(f"Current Working Directory: {os.getcwd()}", flush=True)
-print(f"Files in root: {os.listdir('.')}", flush=True)
+# print(f"Files in root: {os.listdir('.')}", flush=True)
 print("="*50 + "\n", flush=True)
 
 try:
-    print("Pre-importing standard libraries...", flush=True)
+    print("Pre-importing essential libraries...", flush=True)
     import os
     import sys
     from typing import List, Optional
@@ -19,9 +19,8 @@ try:
     print("Setting up sys.path...", flush=True)
     root_path = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(root_path)
-    print(f"Root path: {root_path}", flush=True)
     
-    print("Importing FastAPI and core modules...", flush=True)
+    print("Importing FastAPI and core modules (Lightweight)...", flush=True)
     from fastapi import FastAPI, HTTPException, BackgroundTasks
     from fastapi.responses import FileResponse
     from fastapi.staticfiles import StaticFiles
@@ -29,19 +28,10 @@ try:
     from pydantic import BaseModel
     from dotenv import load_dotenv
 
-    print("Importing custom agents and RAG...", flush=True)
-    # Importar agentes
-    from agents.news_research_agent2 import NewsResearchAgent
-    from agents.article_generation_agent2 import ArticleGenerationAgent
-    from agents.fact_checking_agent2 import FactCheckingAgent
-    from agents.reader_interaction_agent2 import ReaderInteractionAgent
-    from agents.social_media_agent2 import SocialMediaAgent
-    from agents.multilingual_agent import MultilingualAgent
-
-    # Importar herramientas RAG
-    from rag.vector_store import load_vector_store, get_rag_retriever
+    # NOTA: Los agentes y RAG se importan ahora DENTRO del NewspaperService
+    # para evitar fallos de memoria durante el arranque del servidor.
     
-    print("Imports complete. Initializing app...", flush=True)
+    print("Initializing environment...", flush=True)
     load_dotenv()
     
     app = FastAPI(title="AI Newspaper API")
@@ -79,6 +69,17 @@ try:
 
     class NewspaperService:
         def __init__(self):
+            print("--- COMIENZA CARGA DE AGENTES PESADOS (DENTRO DEL CONSTRUCTOR) ---", flush=True)
+            
+            # Importaciones dinámicas (locales para ahorrar RAM al inicio)
+            from agents.news_research_agent2 import NewsResearchAgent
+            from agents.article_generation_agent2 import ArticleGenerationAgent
+            from agents.fact_checking_agent2 import FactCheckingAgent
+            from agents.reader_interaction_agent2 import ReaderInteractionAgent
+            from agents.social_media_agent2 import SocialMediaAgent
+            from agents.multilingual_agent import MultilingualAgent
+            from rag.vector_store import load_vector_store, get_rag_retriever
+            
             print("Constructor: Loading vector store...", flush=True)
             self.vector_store = load_vector_store()
             self.retriever = get_rag_retriever(self.vector_store) if self.vector_store else None
@@ -91,13 +92,14 @@ try:
             self.social_manager = SocialMediaAgent()
             self.chatbot = ReaderInteractionAgent()
             self.translator = MultilingualAgent()
+            print("--- CARGA DE COMPONENTES COMPLETADA ---", flush=True)
 
     _service_instance = None
 
     def get_service():
         global _service_instance
         if _service_instance is None:
-            print("FACTORY: Initializing NewspaperService...", flush=True)
+            print("FACTORY: Solicitando instancia de NewspaperService por primera vez...", flush=True)
             _service_instance = NewspaperService()
         return _service_instance
 
@@ -154,7 +156,7 @@ try:
             print(f"CHAT ERROR: {e}", flush=True)
             raise HTTPException(status_code=500, detail=str(e))
 
-    print("APP DEFINED SUCCESSFULLY", flush=True)
+    print("APP DEFINED SUCCESSFULLY (Ready for Render)", flush=True)
 
 except Exception as e:
     print("\n" + "!"*50, flush=True)
