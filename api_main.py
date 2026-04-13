@@ -103,7 +103,7 @@ try:
             _service_instance = NewspaperService()
         return _service_instance
 
-    @app.get("/", methods=["GET", "HEAD"])
+    @app.api_route("/", methods=["GET", "HEAD"])
     async def root():
         print("Root endpoint hit (GET/HEAD).", flush=True)
         index_path = os.path.join(root_path, "index.html")
