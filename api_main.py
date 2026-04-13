@@ -23,7 +23,9 @@ from agents.multilingual_agent import MultilingualAgent
 # Importar herramientas RAG
 from rag.vector_store import load_vector_store, get_rag_retriever
 
+print("--- STARTING AI NEWSPAPER SERVER ---")
 load_dotenv()
+print("Environment variables loaded.")
 
 app = FastAPI(title="AI Newspaper API")
 
@@ -37,8 +39,14 @@ app.add_middleware(
 )
 
 # Servir archivos estáticos (CSS, JS, imágenes)
-# El primer argumento es la ruta en la URL, el segundo es la carpeta física
-app.mount("/static", StaticFiles(directory="."), name="static")
+try:
+    if os.path.exists("index.html"):
+        app.mount("/static", StaticFiles(directory="."), name="static")
+        print("Static files mounted correctly.")
+    else:
+        print("WARNING: index.html not found, static mounting skipped.")
+except Exception as e:
+    print(f"Error mounting static files: {e}")
 
 # Modelos de datos
 class ResearchRequest(BaseModel):
@@ -55,7 +63,6 @@ class PipelineResponse(BaseModel):
     translations: str
     social_posts: dict
 
-# Inicializar componentes (Singleton pattern para los agentes)
 class NewspaperService:
     def __init__(self):
         self.vector_store = load_vector_store()
@@ -69,20 +76,35 @@ class NewspaperService:
         self.chatbot = ReaderInteractionAgent()
         self.translator = MultilingualAgent()
 
-service = NewspaperService()
+# Inicializar componentes (Singleton pattern con carga perezosa)
+_service_instance = None
+
+def get_service():
+    global _service_instance
+    if _service_instance is None:
+        print("Initializing NewspaperService (Lazy Loading)...")
+        _service_instance = NewspaperService()
+        print("NewspaperService initialization complete.")
+    return _service_instance
 
 @app.get("/")
 async def root():
+    print("Root endpoint hit.")
     # Servir el index.html como la página principal
-    return FileResponse("index.html")
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"message": "AI Newspaper API is running, but index.html is missing."}
 
 @app.post("/run-pipeline", response_model=PipelineResponse)
 async def run_pipeline(request: ResearchRequest):
     try:
+        service = get_service()
         topic = request.topic
+        print(f"Running pipeline for topic: {topic}")
         
         # 1. Investigación
         ideas = service.research_agent.research_trends(topic)
+        print("Research complete.")
         
         # 2. Generación
         article = service.article_agent.generate_article(topic, direct_context=ideas)
@@ -122,6 +144,7 @@ async def run_pipeline(request: ResearchRequest):
 @app.post("/chat")
 async def chat(request: ChatRequest):
     try:
+        service = get_service()
         response = service.chatbot.chat_with_reader(
             request.message, 
             article_context=service.last_article
