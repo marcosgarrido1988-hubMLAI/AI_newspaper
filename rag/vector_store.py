@@ -4,10 +4,9 @@ from typing import List, Optional
 
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStoreRetriever
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.document_loaders import DirectoryLoader, TextLoader, PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStoreRetriever
+# Las pesadas se mueven dentro de las funciones
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +16,7 @@ INDEX_PATH = "faiss_index"
 
 def get_embeddings():
     """Devuelve el modelo de embeddings configurado."""
+    from langchain_community.embeddings import HuggingFaceEmbeddings
     return HuggingFaceEmbeddings(model_name=EMBEDDINGS_MODEL)
 
 def build_vector_store(text_chunks: List[str]) -> Optional[FAISS]:
@@ -28,6 +28,7 @@ def build_vector_store(text_chunks: List[str]) -> Optional[FAISS]:
         return None
 
     try:
+        from langchain_community.vectorstores import FAISS
         embeddings = get_embeddings()
         documents = [Document(page_content=text) for text in text_chunks]
         vector_store = FAISS.from_documents(documents, embeddings)
@@ -47,6 +48,10 @@ def load_from_directory(directory_path: str) -> Optional[FAISS]:
         return None
 
     try:
+        from langchain_community.document_loaders import DirectoryLoader, TextLoader, PyPDFLoader
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
+        from langchain_community.vectorstores import FAISS
+        
         # Cargamos archivos de texto
         txt_loader = DirectoryLoader(directory_path, glob="**/*.txt", loader_cls=TextLoader)
         # Cargamos archivos PDF
@@ -82,6 +87,7 @@ def load_vector_store(folder_path: str = INDEX_PATH) -> Optional[FAISS]:
     if not os.path.exists(folder_path):
         return None
     try:
+        from langchain_community.vectorstores import FAISS
         embeddings = get_embeddings()
         vector_store = FAISS.load_local(folder_path, embeddings, allow_dangerous_deserialization=True)
         logger.info(f"Vector Store cargado desde {folder_path}")
