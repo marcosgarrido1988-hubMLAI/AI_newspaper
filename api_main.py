@@ -159,14 +159,15 @@ try:
             return FileResponse(index_path)
         return HTMLResponse("<h1>AI Newspaper</h1><p>Server is running but index.html was not found.</p>")
 
-    @app.post("/run-pipeline", response_model=PipelineResponse)
+    @app.post("/run-pipeline")
     async def run_pipeline(request: ResearchRequest):
         try:
             service = get_service()
             topic = request.topic
             print(f"PIPELINE START: Topic = {topic}", flush=True)
-            
-            ideas = service.research_agent.research_trends(topic)
+            res_data = service.research_agent.research_trends(topic)
+            ideas = res_data["ideas"]
+            detected_lang = res_data["language"]
             print("PIPELINE: Research done.", flush=True)
             
             article = service.article_agent.generate_article(topic, direct_context=ideas)
@@ -191,11 +192,11 @@ try:
                     social_posts = json.loads(posts_raw[start:end])
             except: pass
                 
-            return PipelineResponse(
-                topic=topic, ideas=ideas, article=article,
-                verification=verification, translations=translations,
-                social_posts=social_posts
-            )
+            return {
+                "topic": topic, "ideas": ideas, "article": article,
+                "verification": verification, "translations": translations,
+                "social_posts": social_posts, "detected_lang": detected_lang
+            }
         except Exception as e:
             print(f"PIPELINE ERROR: {e}", flush=True)
             traceback.print_exc(file=sys.stdout)

@@ -29,14 +29,19 @@ class NewsResearchAgent:
             
             TEMA ORIGINAL: {topic}
             
-            Enumera 3 tendencias actuales o ideas de artículos innovadores. Sé breve, directo y estructurado.""")
+            1. Identifica el IDIOMA del TEMA ORIGINAL (responde solo con una palabra: spanish, english, german, dutch, portuguese, o pinyin).
+            2. Enumera 3 tendencias actuales o ideas de artículos innovadores.
+            
+            Formato de respuesta:
+            IDIOMA: [idioma]
+            IDEAS: [tus ideas]""")
         ])
         
         self.chain = prompt | self.llm if self.llm else None
     
-    def research_trends(self, topic: str) -> str:
+    def research_trends(self, topic: str) -> dict:
         if not self.chain: 
-            return "Error: Cadena de LLM no inicializada."
+            return {"language": "spanish", "ideas": "Error: Cadena de LLM no inicializada."}
         
         try:
             logger.info(f"Buscando en internet sobre: {topic}")
@@ -46,16 +51,21 @@ class NewsResearchAgent:
                 "topic": topic,
                 "search_results": search_results
             })
-            return response.content
+            
+            content = response.content
+            # Extraer idioma e ideas
+            lang = "spanish"
+            ideas = content
+            if "IDIOMA:" in content:
+                parts = content.split("IDEAS:")
+                lang_line = parts[0].replace("IDIOMA:", "").strip().lower()
+                lang = "".join(filter(str.isalpha, lang_line)) # Limpiar puntuación
+                ideas = parts[1].strip() if len(parts) > 1 else content
+            
+            return {"language": lang, "ideas": ideas}
         except Exception as e:
             logger.error(f"Error al investigar tendencias en la web: {e}")
-            # Si falla la búsqueda, intentamos solo con el LLM como fallback
-            try:
-                fallback_prompt = f"Propón 3 ideas de artículos sobre {topic} basadas en tendencias generales actuales."
-                response = self.llm.invoke(fallback_prompt)
-                return f"(Nota: Búsqueda fallida, usando IA general)\n\n{response.content}"
-            except:
-                return f"Error en la investigación de tendencias: {str(e)}"
+            return {"language": "spanish", "ideas": f"Error en la investigación: {str(e)}"}
 
 if __name__ == "__main__":
     agent = NewsResearchAgent()

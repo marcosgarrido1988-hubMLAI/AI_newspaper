@@ -63,7 +63,7 @@ class ArticleGenerationAgent:
             
         except Exception as e:
             logger.error(f"Error en la generación del LLM: {e}")
-            return "Lo siento, ocurrió un error al redactar el artículo."
+            return f"Lo siento, ocurrió un error al redactar el artículo. Detalle para el terminal: {str(e)[:100]}"
 
 if __name__ == "__main__":
     from rag.vector_store import load_vector_store, get_rag_retriever

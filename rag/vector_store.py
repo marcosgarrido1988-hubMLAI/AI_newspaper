@@ -19,7 +19,7 @@ def get_embeddings():
     from langchain_community.embeddings import HuggingFaceEmbeddings
     return HuggingFaceEmbeddings(model_name=EMBEDDINGS_MODEL)
 
-def build_vector_store(text_chunks: List[str]) -> Optional[FAISS]:
+def build_vector_store(text_chunks: List[str]) -> Optional["FAISS"]:
     """
     Construye un Vector Store usando FAISS y Embeddings locales.
     """
@@ -38,7 +38,7 @@ def build_vector_store(text_chunks: List[str]) -> Optional[FAISS]:
         logger.error(f"Error al construir el Vector Store: {e}")
         return None
 
-def load_from_directory(directory_path: str) -> Optional[FAISS]:
+def load_from_directory(directory_path: str) -> Optional["FAISS"]:
     """
     Carga archivos (.txt, .pdf) de un directorio, los procesa y crea un Vector Store.
     """
@@ -74,7 +74,7 @@ def load_from_directory(directory_path: str) -> Optional[FAISS]:
         logger.error(f"Error al cargar desde directorio: {e}")
         return None
 
-def save_vector_store(vector_store: FAISS, folder_path: str = INDEX_PATH):
+def save_vector_store(vector_store: "FAISS", folder_path: str = INDEX_PATH):
     """Guarda el Vector Store en disco."""
     try:
         vector_store.save_local(folder_path)
@@ -82,7 +82,7 @@ def save_vector_store(vector_store: FAISS, folder_path: str = INDEX_PATH):
     except Exception as e:
         logger.error(f"Error al guardar el Vector Store: {e}")
 
-def load_vector_store(folder_path: str = INDEX_PATH) -> Optional[FAISS]:
+def load_vector_store(folder_path: str = INDEX_PATH) -> Optional["FAISS"]:
     """Carga el Vector Store desde el disco."""
     if not os.path.exists(folder_path):
         return None
@@ -96,7 +96,7 @@ def load_vector_store(folder_path: str = INDEX_PATH) -> Optional[FAISS]:
         logger.error(f"Error al cargar el Vector Store: {e}")
         return None
 
-def get_rag_retriever(vector_store: FAISS) -> Optional[VectorStoreRetriever]:
+def get_rag_retriever(vector_store: "FAISS") -> Optional[VectorStoreRetriever]:
     """Devuelve un retriever a partir de la base de vectores."""
     if vector_store:
         return vector_store.as_retriever(search_kwargs={"k": 3})

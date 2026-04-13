@@ -28,7 +28,19 @@ class MultilingualAgent:
             Artículo original (Español):
             {article_text}
             
-            Por favor, devuelve la respuesta en un formato claro, separando cada idioma con su respectivo título.""")
+            REGLAS CRÍTICAS:
+            1. Traduce el texto ÍNTEGRAMENTE. No resumas. Si el original tiene 5 párrafos, la traducción debe tener 5 párrafos.
+            2. Mantén el mismo tono periodístico.
+            
+            ESTRUCTURA DE RESPUESTA (JSON PURO):
+            {{
+                "pinyin": "[ARTÍCULO COMPLETO EN PINYIN]",
+                "german": "[ARTÍCULO COMPLETO EN ALEMÁN]",
+                "dutch": "[ARTÍCULO COMPLETO EN HOLANDÉS]",
+                "portuguese": "[ARTÍCULO COMPLETO EN PORTUGUÉS]",
+                "english": "[ARTÍCULO COMPLETO EN INGLÉS]"
+            }}
+            IMPORTANTE: Solo el objeto JSON, sin comentarios adicionales.""")
         ])
         
         self.chain = prompt | self.llm if self.llm else None
