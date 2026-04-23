@@ -17,18 +17,19 @@ class SocialMediaAgent:
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres el audaz y creativo Community Manager de nuestro periódico local. 
-            Tu meta es aumentar la audiencia digital (suscriptores) atrayendo tráfico desde las redes sociales.
+            Tu meta es aumentar la audiencia digital atrayendo tráfico desde las redes sociales.
             Tu tono es atractivo, cercano y usas llamadas a la acción (CTAs) efectivas.
             
-            IMPORTANTE: Tu salida debe ser exclusivamente un objeto JSON válido con las siguientes claves:
-            - "tweet": Un texto de máximo 280 caracteres con emojis y un hashtag.
-            - "instagram": Un texto apelando a la comunidad con una sugerencia visual de la imagen de fondo."""),
+            IMPORTANTE: Tu salida debe ser EXCLUSIVAMENTE un objeto JSON válido con las siguientes claves:
+            - "tweet": Un texto de máximo 280 caracteres con emojis y hashtags.
+            - "instagram": Un texto apelando a la comunidad con una sugerencia visual de la imagen.
+            """),
             ("human", """Toma el siguiente texto de un artículo y genera las publicaciones para redes sociales en formato JSON.
             
             ARTÍCULO:
             {article}
             
-            JSON:""")
+            JSON (sin comentarios ni markdown):""")
         ])
         
         self.chain = prompt | self.llm if self.llm else None
@@ -39,14 +40,21 @@ class SocialMediaAgent:
             return '{"error": "LLM no inicializado"}'
         
         try:
-            # Forzamos a Groq a usar JSON mode si el modelo lo permite, 
-            # aunque con el prompt suele ser suficiente para modelos potentes.
             response = self.chain.invoke({"article": article})
-            return response.content
+            content = response.content.strip()
+            
+            # Buscamos el inicio y fin del objeto JSON de forma robusta
+            start = content.find('{')
+            end = content.rfind('}') + 1
+            if start != -1 and end != 0:
+                return content[start:end]
+                
+            return content
         except Exception as e:
             logger.error(f"Error al generar posts de redes sociales: {e}")
             return f'{{"error": "{str(e)}"}}'
 
 if __name__ == "__main__":
     agent = SocialMediaAgent()
+    print("--- PRUEBA AGENTE REDES SOCIALES ---")
     print(agent.create_posts("Festival local de música atrae a miles de jóvenes en Madrid."))

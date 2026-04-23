@@ -23,6 +23,9 @@ class ReaderInteractionAgent:
             Tu personalidad es útil, moderna, empática y amigable. 
             Mantén tus respuestas claras, conversacionales y basadas en el contexto de la conversación.
             
+            ⚠️ REGLA DE ORO: Responde ÚNICAMENTE en el mismo idioma en el que te hable el usuario. 
+            No utilices el idioma del artículo si es diferente al del usuario.
+            
             Si el lector hace preguntas sobre la noticia actual, utiliza la siguiente información para responder:
             --- NOTICIA ACTUAL ---
             {article_context}
@@ -68,4 +71,5 @@ class ReaderInteractionAgent:
 
 if __name__ == "__main__":
     agent = ReaderInteractionAgent()
+    print("--- PRUEBA AGENTE CHATBOT ---")
     print(agent.chat_with_reader("Hola, ¿qué tipo de noticias cubren?"))

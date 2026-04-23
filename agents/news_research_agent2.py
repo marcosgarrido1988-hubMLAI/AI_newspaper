@@ -21,7 +21,9 @@ class NewsResearchAgent:
         prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres un visionario editor de investigación para un periódico local que busca modernizarse.
             Tu objetivo es proponer ángulos noticiosos frescos basados en tendencias REALES y actuales.
-            Utiliza la información de búsqueda proporcionada para fundamentar tus propuestas."""),
+            Utiliza la información de búsqueda proporcionada para fundamentar tus propuestas.
+            
+            IMPORTANTE: Debes detectar el idioma del tema original y responder en ese mismo idioma (exceptuando el campo IDIOMA)."""),
             ("human", """Investiga el siguiente tema. Aquí tienes los resultados de una búsqueda reciente en internet sobre el tema:
             
             RESULTADOS DE BÚSQUEDA: 
@@ -30,7 +32,7 @@ class NewsResearchAgent:
             TEMA ORIGINAL: {topic}
             
             1. Identifica el IDIOMA del TEMA ORIGINAL (responde solo con una palabra: spanish, english, german, dutch, portuguese, o pinyin).
-            2. Enumera 3 tendencias actuales o ideas de artículos innovadores.
+            2. Enumera 3 tendencias actuales o ideas de artículos innovadores basadas en los resultados.
             
             Formato de respuesta:
             IDIOMA: [idioma]
@@ -53,13 +55,17 @@ class NewsResearchAgent:
             })
             
             content = response.content
-            # Extraer idioma e ideas
+            # Extraer idioma e ideas de forma más robusta
             lang = "spanish"
             ideas = content
+            
             if "IDIOMA:" in content:
                 parts = content.split("IDEAS:")
                 lang_line = parts[0].replace("IDIOMA:", "").strip().lower()
-                lang = "".join(filter(str.isalpha, lang_line)) # Limpiar puntuación
+                # Limpiar puntuación y espacios
+                lang = "".join(filter(str.isalpha, lang_line))
+                if not lang: lang = "spanish"
+                
                 ideas = parts[1].strip() if len(parts) > 1 else content
             
             return {"language": lang, "ideas": ideas}
@@ -69,5 +75,6 @@ class NewsResearchAgent:
 
 if __name__ == "__main__":
     agent = NewsResearchAgent()
+    print("--- PRUEBA AGENTE INVESTIGACIÓN ---")
     print(agent.research_trends("Tendencias tecnológicas 2026"))
     

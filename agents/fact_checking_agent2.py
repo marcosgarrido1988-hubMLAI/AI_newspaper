@@ -20,7 +20,8 @@ class FactCheckingAgent:
         prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres un editor jefe de Fact-Checking sumamente riguroso. 
             Tu objetivo es garantizar la veracidad y objetividad absoluta.
-            Utiliza los resultados de búsqueda proporcionados para contrastar los datos del artículo."""),
+            Utiliza los resultados de búsqueda proporcionados para contrastar los datos del artículo.
+            Si encuentras discrepancias, menciónalas claramente."""),
             ("human", """Revisa el siguiente borrador de artículo. Hemos realizado una búsqueda de verificación sobre los puntos clave del artículo:
             
             RESULTADOS DE VERIFICACIÓN (WEB):
@@ -29,7 +30,8 @@ class FactCheckingAgent:
             ARTÍCULO A REVISAR:
             {article}
             
-            Proporciona una evaluación crítica basada EN EVIDENCIAS. Identifica errores, sesgos o datos sin contrastar.""")
+            Proporciona una evaluación crítica basada EN EVIDENCIAS. Identifica errores, sesgos o datos sin contrastar.
+            Responde en el mismo idioma que el artículo.""")
         ])
         
         self.chain = prompt | self.llm if self.llm else None
@@ -56,13 +58,14 @@ class FactCheckingAgent:
             logger.error(f"Error al verificar la información con búsqueda: {e}")
             # Fallback a verificación interna
             try:
-                fallback_prompt = f"Realiza una revisión crítica interna (sin web) de este artículo:\n\n{article}"
+                fallback_prompt = f"Realiza una revisión crítica interna de este artículo basándote en tu conocimiento:\n\n{article}"
                 response = self.llm.invoke(fallback_prompt)
-                return f"(Nota: Búsqueda de verificación fallida)\n\n{response.content}"
+                return f"(Nota: Búsqueda de verificación fallida. Evaluación interna activa)\n\n{response.content}"
             except:
                 return f"Error en el proceso de Fact-Checking: {str(e)}"
 
 if __name__ == "__main__":
     agent = FactCheckingAgent()
-    articulo_test = "El Getafe CF ha anunciado un nuevo proyecto de cantera digital en 2024."
+    articulo_test = "El Real Madrid ha ganado 15 Champions Leagues hasta el año 2024."
+    print("--- PRUEBA AGENTE FACT-CHECKING ---")
     print(agent.verify_information(articulo_test))

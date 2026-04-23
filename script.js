@@ -14,6 +14,7 @@ const uiTranslations = {
         section_verification: "VERIFICACIÓN",
         section_social: "REDES",
         btn_new_search: "NUEVA BÚSQUEDA",
+        btn_home: "INICIO",
         lang_spanish: "ESPAÑOL",
         lang_german: "ALEMÁN",
         lang_english: "INGLÉS",
@@ -38,6 +39,7 @@ const uiTranslations = {
         section_verification: "VERIFICATION",
         section_social: "SOCIAL",
         btn_new_search: "NEW SEARCH",
+        btn_home: "INICIO",
         lang_spanish: "SPANISH",
         lang_german: "GERMAN",
         lang_english: "ENGLISH",
@@ -62,6 +64,7 @@ const uiTranslations = {
         section_verification: "VERIFIZIERUNG",
         section_social: "SOCIAL MEDIA",
         btn_new_search: "NEUE SUCHE",
+        btn_home: "INICIO",
         lang_spanish: "SPANISCH",
         lang_german: "DEUTSCH",
         lang_english: "ENGLISCH",
@@ -86,6 +89,7 @@ const uiTranslations = {
         section_verification: "YÀNZHÈNG",
         section_social: "SHEJIĀO",
         btn_new_search: "XĪN DE SǑUSUǑ",
+        btn_home: "INICIO",
         lang_spanish: "XĪBĀNYÁYǓ",
         lang_german: "DÉYǓ",
         lang_english: "YĪNGYǓ",
@@ -110,6 +114,7 @@ const uiTranslations = {
         section_verification: "VERIFICATIE",
         section_social: "SOCIAL MEDIA",
         btn_new_search: "NIEUWE ZOEKOPDRACHT",
+        btn_home: "INICIO",
         lang_spanish: "SPAANS",
         lang_german: "DUITS",
         lang_english: "ENGELS",
@@ -134,6 +139,7 @@ const uiTranslations = {
         section_verification: "VERIFICAÇÃO",
         section_social: "REDES SOCIAIS",
         btn_new_search: "NOVA BUSCA",
+        btn_home: "INICIO",
         lang_spanish: "ESPANHOL",
         lang_german: "ALEMÃO",
         lang_english: "INGLÊS",
@@ -145,6 +151,32 @@ const uiTranslations = {
         chat_welcome: "Deseja aprofundar em algum ponto deste relatório?",
         chat_placeholder: "Escreva aqui...",
         reading_time: "3 min de leitura"
+    },
+    italian: {
+        nav_status: "MODALITÀ LETTURA ATTIVA",
+        hero_title: 'Notizie alla velocità della <span class="gradient-text">Luce... quasi</span>',
+        hero_subtitle: "Inserisci un argomento in qualsiasi lingua e lascia che la nostra rete di agenti scriva, verifichi e traduca per te.",
+        input_placeholder: "Scrivi il tuo argomento qui...",
+        btn_generate: "GENERA",
+        loading_text: "SINCRONIZZAZIONE RETE AGENTI...",
+        sidebar_header: "OPZIONI",
+        section_translations: "TRADUZIONI",
+        section_verification: "VERIFICA",
+        section_social: "SOCIAL",
+        btn_new_search: "NUOVA RICERCA",
+        btn_home: "HOME",
+        lang_spanish: "SPAGNOLO",
+        lang_german: "TEDESCO",
+        lang_english: "INGLESE",
+        lang_pinyin: "PINYIN",
+        lang_dutch: "OLANDESE",
+        lang_portuguese: "PORTOGHESE",
+        lang_italian: "ITALIANO",
+        verifying_msg: "Verifica dei fatti...",
+        chat_header: "Assistente Editoriale",
+        chat_welcome: "Vuoi approfondire qualche punto di questo articolo?",
+        chat_placeholder: "Scrivi qui...",
+        reading_time: "3 min di lettura"
     }
 };
 
@@ -209,7 +241,8 @@ function switchUILanguage(lang) {
         'de': 'german', 'ger': 'german', 'deutsch': 'german',
         'nl': 'dutch', 'ned': 'dutch', 'holandés': 'dutch',
         'pt': 'portuguese', 'portugués': 'portuguese',
-        'zh': 'pinyin', 'chinese': 'pinyin', 'chino': 'pinyin'
+        'zh': 'pinyin', 'chinese': 'pinyin', 'chino': 'pinyin',
+        'it': 'italian', 'ita': 'italian'
     };
 
     if (mapping[normalized]) normalized = mapping[normalized];
@@ -246,13 +279,10 @@ function switchUILanguage(lang) {
         document.getElementById('readingTimeText').innerText = uiTranslations[normalized].reading_time;
     }
 
-    // Sync with Article Translation
+    // Sync with Article Translation — only if workspace is visible
     const targetTab = document.querySelector(`.v-tab[data-lang="${normalized}"]`);
     if (targetTab && !workspace.classList.contains('hidden')) {
-        // Solo disparamos el click si el workspace está visible
-        // Usamos una bandera para evitar bucles infinitos si fuera necesario
-        showTranslation(lang);
-        // Actualizamos estado visual de la pestaña lateral
+        showTranslation(normalized); // ✅ usa la clave normalizada, no la raw
         document.querySelectorAll('.v-tab').forEach(b => b.classList.remove('active'));
         targetTab.classList.add('active');
     }
@@ -278,24 +308,30 @@ async function runPipeline() {
         const data = await response.json();
         
         originalArticle = data.article;
-        currentTranslations = parseTranslations(data.translations);
-        currentTranslations['spanish'] = originalArticle;
-
-        // Auto-Language Sync
         const detected = data.detected_lang || 'spanish';
+        
+        // Limpiamos traducciones previas
+        currentTranslations = {};
+        
+        // El artículo original se guarda bajo su idioma detectado
+        currentTranslations[detected] = originalArticle;
+
+        // Auto-Language Sync: Cambiamos la interfaz al idioma detectado
         switchUILanguage(detected);
 
         // Update UI
         articleTopic.innerText = data.topic;
         verificationContent.innerText = data.verification;
-        tweetContent.innerText = data.social_posts.tweet || 'N/A';
-        instaContent.innerText = data.social_posts.instagram || 'N/A';
+        
+        // Fetch social posts separately (for fluidity)
+        fetchSocialPosts(originalArticle);
 
         loadingState.classList.add('hidden');
         heroSection.classList.add('hidden');
         workspace.classList.remove('hidden');
+        document.getElementById('navStatus').classList.remove('hidden');
 
-        // Select the correct translation tab
+        // Click the tab for the detected language to display the article
         const targetTab = document.querySelector(`.v-tab[data-lang="${detected}"]`);
         if (targetTab) targetTab.click();
         else document.querySelector('.v-tab[data-lang="spanish"]').click();
@@ -313,7 +349,9 @@ async function runPipeline() {
 }
 
 function parseTranslations(text) {
-    const langs = { pinyin: '', german: '', dutch: '', portuguese: '', english: '' };
+    const langs = { 
+        spanish: '', pinyin: '', german: '', dutch: '', portuguese: '', english: '', italian: '' 
+    };
     try {
         if (!text || typeof text !== 'string') return langs;
         
@@ -335,13 +373,15 @@ function parseTranslations(text) {
             // NORMALIZACIÓN DE CLAVES: Convertimos todo a minúsculas y mapeamos
             const normalizedData = {};
             const keyMapping = {
+                'spanish': 'spanish', 'español': 'spanish', 'es': 'spanish',
                 'german': 'german', 'alemán': 'german', 'de': 'german',
                 'english': 'english', 'inglés': 'english', 'en': 'english',
                 'pinyin': 'pinyin', 'chino': 'pinyin', 'zh': 'pinyin',
                 'dutch': 'dutch', 'holandés': 'dutch', 'nl': 'dutch',
-                'portuguese': 'portuguese', 'portugués': 'portuguese', 'pt': 'portuguese'
+                'portuguese': 'portuguese', 'portugués': 'portuguese', 'pt': 'portuguese',
+                'italian': 'italian', 'italiano': 'italian', 'it': 'italian'
             };
-
+            
             for (let key in parsed) {
                 const lowKey = key.toLowerCase();
                 const targetKey = keyMapping[lowKey] || lowKey;
@@ -360,16 +400,92 @@ function parseTranslations(text) {
     return langs;
 }
 
-function showTranslation(lang) {
-    // Si es español o el idioma pedido no tiene contenido, mostramos el original
-    const translation = currentTranslations[lang];
-    const contentToShow = (translation && translation.length > 20) ? translation : originalArticle;
+async function showTranslation(lang) {
+    if (!lang || !originalArticle) return; // No hacer nada si no hay artículo cargado
+    
+    // Si ya tenemos la traducción en caché, la mostramos directamente
+    if (currentTranslations[lang]) {
+        renderTranslation(currentTranslations[lang]);
+        return;
+    }
 
-    articleBody.style.opacity = "0";
-    setTimeout(() => {
-        articleBody.innerText = contentToShow;
+    // Si no la tenemos → llamamos al backend (Bajo Demanda)
+    articleBody.style.transition = 'opacity 0.2s';
+    articleBody.style.opacity = "0.3";
+    articleTopic.style.opacity = "0.3";
+    articleBody.innerText = `⏳ Traduciendo al ${lang.toUpperCase()}...`;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/translate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                article: originalArticle,
+                target_lang: lang 
+            })
+        });
+        
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        
+        const data = await response.json();
+        // Guardamos en caché para que el próximo click sea instantáneo
+        currentTranslations[lang] = data;
+        renderTranslation(data);
+    } catch (err) {
+        console.error("Translation error:", err);
+        articleBody.innerText = "⚠️ Error al obtener la traducción. Inténtalo de nuevo.";
         articleBody.style.opacity = "1";
-    }, 200);
+        articleTopic.style.opacity = "1";
+    }
+}
+
+function renderTranslation(contentToShow) {
+    let title = "";
+    let body = "";
+
+    if (typeof contentToShow === 'object' && contentToShow !== null) {
+        title = contentToShow.title || "";
+        body = contentToShow.body || contentToShow.content || JSON.stringify(contentToShow);
+    } else if (typeof contentToShow === 'string') {
+        const lines = contentToShow.trim().split('\n').filter(l => l.trim() !== '');
+        if (lines.length > 1) {
+            title = lines[0].replace(/^#+\s*/, '').trim();
+            body = lines.slice(1).join('\n').trim();
+        } else {
+            body = contentToShow;
+        }
+    }
+
+    // Animate in the new content
+    articleBody.style.transition = 'opacity 0.3s';
+    articleTopic.style.transition = 'opacity 0.3s';
+    articleBody.style.opacity = "0";
+    articleTopic.style.opacity = "0";
+
+    setTimeout(() => {
+        if (title) {
+            articleTopic.innerText = title;
+            articleTopic.style.display = "block";
+        }
+        articleBody.innerText = body || "(Sin contenido)"; 
+        articleBody.style.opacity = "1";
+        articleTopic.style.opacity = "1";
+    }, 250);
+}
+
+async function fetchSocialPosts(articleText) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/social-posts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic: articleText }) // Usamos el campo topic para enviar el texto
+        });
+        const data = await response.json();
+        tweetContent.innerText = data.tweet || 'N/A';
+        instaContent.innerText = data.instagram || 'N/A';
+    } catch (e) {
+        console.warn("Social posts fetch failed:", e);
+    }
 }
 
 async function sendMessage() {
@@ -413,7 +529,36 @@ window.shareContent = () => {
     }
 }
 
+// Nueva Búsqueda — reset completo del estado
+function newSearch() {
+    originalArticle = "";
+    currentTranslations = {};
+    currentUILang = "spanish";
+    articleTopic.innerText = "";
+    articleBody.innerText = "";
+    verificationContent.innerText = "";
+    tweetContent.innerText = "";
+    instaContent.innerText = "";
+    workspace.classList.add('hidden');
+    document.getElementById('navStatus').classList.add('hidden');
+    heroSection.classList.remove('hidden');
+    heroSection.style.opacity = "1";
+    heroSection.style.pointerEvents = "all";
+    topicInput.value = "";
+    chatPanel.classList.add('hidden');
+    document.querySelectorAll('.v-tab').forEach(b => b.classList.remove('active'));
+    const firstTab = document.querySelector('.v-tab[data-lang="spanish"]');
+    if (firstTab) firstTab.classList.add('active');
+    switchUILanguage('spanish');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Attach newSearch to the button if it exists
+const newSearchBtn = document.getElementById('newSearchBtn');
+if (newSearchBtn) newSearchBtn.addEventListener('click', newSearch);
+
 // Initialize UI strings on load
 window.addEventListener('load', () => {
     switchUILanguage('spanish');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
