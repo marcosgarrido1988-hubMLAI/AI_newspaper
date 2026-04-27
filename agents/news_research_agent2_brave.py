@@ -6,17 +6,21 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_community.tools import BraveSearch
 from llm_config import get_groq_llm
 
 logger = logging.getLogger(__name__)
 
 class NewsResearchAgent:
-    """Agente encargado de investigar tendencias y proponer ideas de artículos usando Groq y búsqueda en la web."""
+    """Agente encargado de investigar tendencias y proponer ideas de artículos usando Groq y búsqueda en la web Brave."""
     def __init__(self):
-        # Temperatura alta (0.8) ideal para brainstorming y creatividad
-        self.llm = get_groq_llm(temperature=0.8) 
-        self.search = DuckDuckGoSearchRun()
+        # Temperatura moderada (0.4) para mayor concreción
+        self.llm = get_groq_llm(temperature=0.4) 
+        # BraveSearch requiere BRAVE_SEARCH_API_KEY en variables de entorno
+        self.search = BraveSearch.from_api_key(
+            api_key=os.getenv("BRAVE_SEARCH_API_KEY"),
+            search_kwargs={"count": 3}
+        )
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres un visionario editor de investigación para un periódico local que busca modernizarse.
@@ -46,7 +50,7 @@ class NewsResearchAgent:
             return {"language": "spanish", "ideas": "Error: Cadena de LLM no inicializada."}
         
         try:
-            logger.info(f"Buscando en internet sobre: {topic}")
+            logger.info(f"Buscando en internet con Brave sobre: {topic}")
             search_results = self.search.run(topic)
             
             response = self.chain.invoke({
@@ -70,11 +74,10 @@ class NewsResearchAgent:
             
             return {"language": lang, "ideas": ideas}
         except Exception as e:
-            logger.error(f"Error al investigar tendencias en la web: {e}")
-            return {"language": "spanish", "ideas": f"Error en la investigación: {str(e)}"}
+            logger.error(f"Error al investigar tendencias en la web Brave: {e}")
+            return {"language": "spanish", "ideas": f"Error en la investigación Brave: {str(e)}"}
 
 if __name__ == "__main__":
     agent = NewsResearchAgent()
-    print("--- PRUEBA AGENTE INVESTIGACIÓN ---")
+    print("--- PRUEBA AGENTE INVESTIGACIÓN (BRAVE) ---")
     print(agent.research_trends("Tendencias tecnológicas 2026"))
-    

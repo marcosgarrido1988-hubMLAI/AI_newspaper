@@ -27,4 +27,4 @@ EXPOSE 7860
 
 # Comando para arrancar la aplicación
 # Usamos el puerto 7860 que es el estándar de Hugging Face
-CMD ["python", "-m", "uvicorn", "api_main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["python", "-m", "uvicorn", "api_main_brave:app", "--host", "0.0.0.0", "--port", "7860"]

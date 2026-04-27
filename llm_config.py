@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 # Cargar variables de entorno (como GROQ_API_KEY)
 load_dotenv()
 
-def get_groq_llm(model_name=None, temperature=0.7):
+def get_groq_llm(model_name=None, temperature=0.4):
     """
     Inicializa y devuelve el modelo de Groq a través de LangChain.
     Usa el MODEL_NAME del .env por defecto (llama-3.3-70b-versatile).

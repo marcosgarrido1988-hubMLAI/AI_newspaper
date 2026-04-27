@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class MultilingualAgent:
     """Agente encargado de adaptar y traducir noticias a múltiples idiomas."""
     def __init__(self):
-        self.llm = get_groq_llm(temperature=0.7)
+        self.llm = get_groq_llm(temperature=0.4)
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres un traductor y adaptador cultural experto. Tu tarea es recibir un artículo y adaptarlo al idioma solicitado.

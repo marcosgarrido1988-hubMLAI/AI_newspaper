@@ -6,16 +6,20 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_community.tools import BraveSearch
 from llm_config import get_groq_llm
 
 logger = logging.getLogger(__name__)
 
 class FactCheckingAgent:
-    """Agente que verifica la información y evalúa la fiabilidad de las fuentes usando Groq y búsqueda web."""
+    """Agente que verifica la información y evalúa la fiabilidad de las fuentes usando Groq y búsqueda web Brave."""
     def __init__(self):
         self.llm = get_groq_llm(temperature=0.1) 
-        self.search = DuckDuckGoSearchRun()
+        # BraveSearch requiere BRAVE_SEARCH_API_KEY en variables de entorno
+        self.search = BraveSearch.from_api_key(
+            api_key=os.getenv("BRAVE_SEARCH_API_KEY"),
+            search_kwargs={"count": 3}
+        )
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres un editor jefe de Fact-Checking sumamente riguroso. 
@@ -46,7 +50,7 @@ class FactCheckingAgent:
             # Extraemos una consulta de verificación basada en el inicio del artículo
             search_query = f"fact check: {article_text[:120]}"
             
-            logger.info(f"Realizando búsqueda de fact-checking: {search_query}")
+            logger.info(f"Realizando búsqueda de fact-checking Brave: {search_query}")
             search_results = self.search.run(search_query)
             
             response = self.chain.invoke({
@@ -55,17 +59,17 @@ class FactCheckingAgent:
             })
             return response.content
         except Exception as e:
-            logger.error(f"Error al verificar la información con búsqueda: {e}")
+            logger.error(f"Error al verificar la información con búsqueda Brave: {e}")
             # Fallback a verificación interna
             try:
                 fallback_prompt = f"Realiza una revisión crítica interna de este artículo basándote en tu conocimiento:\n\n{article}"
                 response = self.llm.invoke(fallback_prompt)
-                return f"(Nota: Búsqueda de verificación fallida. Evaluación interna activa)\n\n{response.content}"
+                return f"(Nota: Búsqueda de verificación Brave fallida. Evaluación interna activa)\n\n{response.content}"
             except:
                 return f"Error en el proceso de Fact-Checking: {str(e)}"
 
 if __name__ == "__main__":
     agent = FactCheckingAgent()
     articulo_test = "El Real Madrid ha ganado 15 Champions Leagues hasta el año 2024."
-    print("--- PRUEBA AGENTE FACT-CHECKING ---")
+    print("--- PRUEBA AGENTE FACT-CHECKING (BRAVE) ---")
     print(agent.verify_information(articulo_test))

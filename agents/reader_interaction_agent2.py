@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class ReaderInteractionAgent:
     """Chatbot con memoria para interactuar con lectores usando Groq."""
     def __init__(self):
-        self.llm = get_groq_llm(temperature=0.7)
+        self.llm = get_groq_llm(temperature=0.4)
         self.store = {}
 
         prompt = ChatPromptTemplate.from_messages([

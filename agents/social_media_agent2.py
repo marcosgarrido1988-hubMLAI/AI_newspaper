@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class SocialMediaAgent:
     """Agente que crea publicaciones para redes sociales usando Groq."""
     def __init__(self):
-        self.llm = get_groq_llm(temperature=0.7)
+        self.llm = get_groq_llm(temperature=0.4)
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", """Eres el audaz y creativo Community Manager de nuestro periódico local. 
